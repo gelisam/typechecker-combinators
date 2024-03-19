@@ -13,8 +13,12 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     TypecheckerCombinators
+                     , TypecheckerCombinators.Core
+                     , TypecheckerCombinators.Fix
+                     , TypecheckerCombinators.Terms
+                     , TypecheckerCombinators.Types
+                     , TypecheckerCombinators.Unification
   build-depends:       base
-                     , doctest
                      , containers
                      , mtl
                      , transformers
