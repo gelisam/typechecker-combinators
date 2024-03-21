@@ -21,7 +21,7 @@ import Typechecker.Fix
 -- >>> import Control.Monad.Trans.Maybe (runMaybeT)
 
 
-class Match fs where
+class Traversable fs => Match fs where
   match
     :: fs a
     -> fs a
@@ -185,7 +185,7 @@ occursIn (Univar pt0) x0 = do
 -- >>> runMaybeT $ unify tp1 tp2
 -- Nothing
 unify
-  :: forall tpF. (Traversable tpF, Match tpF)
+  :: forall tpF. Match tpF
   => Unifix tpF
   -> Unifix tpF
   -> MaybeT IO ()
