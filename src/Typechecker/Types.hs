@@ -6,10 +6,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-module TypecheckerCombinators.Types where
+module Typechecker.Types where
 
-import TypecheckerCombinators.Fix
-import TypecheckerCombinators.Unification
+import Typechecker.Fix
+import Typechecker.Unification
 
 
 data Arr ty = Arr ty ty

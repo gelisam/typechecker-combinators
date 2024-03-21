@@ -1,12 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
-module TypecheckerCombinators.Core where
+module Typechecker.Core where
 
 import Control.Applicative (Alternative(empty))
 import Control.Monad (guard)
 
-import TypecheckerCombinators.Fix
+import Typechecker.Fix
 
 
 type Check term tp m

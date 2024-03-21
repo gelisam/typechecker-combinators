@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-module TypecheckerCombinators.Unification where
+module Typechecker.Unification where
 
 import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
@@ -14,7 +14,7 @@ import Control.Monad.Trans.Maybe (MaybeT(MaybeT))
 import Data.Foldable (for_)
 import Data.UnionFind.IO qualified as UnionFind
 
-import TypecheckerCombinators.Fix
+import Typechecker.Fix
 
 -- $setup
 -- >>> :set -XTypeOperators

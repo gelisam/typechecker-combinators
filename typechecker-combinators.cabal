@@ -12,12 +12,12 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     TypecheckerCombinators
-                     , TypecheckerCombinators.Core
-                     , TypecheckerCombinators.Fix
-                     , TypecheckerCombinators.Terms
-                     , TypecheckerCombinators.Types
-                     , TypecheckerCombinators.Unification
+  exposed-modules:     Demo
+                     , Typechecker.Core
+                     , Typechecker.Fix
+                     , Typechecker.Terms
+                     , Typechecker.Types
+                     , Typechecker.Unification
   build-depends:       base
                      , containers
                      , mtl

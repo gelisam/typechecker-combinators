@@ -1,7 +1,0 @@
-module TypecheckerCombinators where
-
-import TypecheckerCombinators.Core
-import TypecheckerCombinators.Fix
-import TypecheckerCombinators.Terms
-import TypecheckerCombinators.Types
-import TypecheckerCombinators.Unification

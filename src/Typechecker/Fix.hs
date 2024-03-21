@@ -13,7 +13,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 -- Data Types à la Carte
-module TypecheckerCombinators.Fix where
+module Typechecker.Fix where
 
 import Data.Kind (Type)
 import Data.Proxy (Proxy(..))

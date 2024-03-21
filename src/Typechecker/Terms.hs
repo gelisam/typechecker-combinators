@@ -2,9 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-module TypecheckerCombinators.Terms where
+module Typechecker.Terms where
 
-import TypecheckerCombinators.Fix
+import Typechecker.Fix
 
 
 newtype Var term = Var String
