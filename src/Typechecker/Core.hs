@@ -1,7 +1,16 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
-module Typechecker.Core where
+module Typechecker.Core
+  ( Check
+  , Infer
+  , TypeChecker
+  , check
+  , infer
+  , combine
+  , checker
+  , inferer
+  ) where
 
 import Control.Applicative (Alternative(empty))
 import Control.Monad (guard)
@@ -27,27 +36,27 @@ data TypeChecker exprF tp m = TypeChecker
       -> Infer (exprF r) tp m
   }
 
-checkInferTC
+checkInfer
   :: TypeChecker exprF tp m
   -> ( Check (Fix exprF) tp m
      , Infer (Fix exprF) tp m
      )
-checkInferTC tc = (check, infer)
+checkInfer tc = (checkR, inferR)
   where
-    check (Fix fFix) tp
-      = mkCheck tc check infer fFix tp
-    infer (Fix fFix)
-      = mkInfer tc check infer fFix
+    checkR (Fix fFix) tp
+      = mkCheck tc checkR inferR fFix tp
+    inferR (Fix fFix)
+      = mkInfer tc checkR inferR fFix
 
-checkTC
+check
   :: TypeChecker exprF tp m
   -> Check (Fix exprF) tp m
-checkTC = fst . checkInferTC
+check = fst . checkInfer
 
-inferTC
+infer
   :: TypeChecker exprF tp m
   -> Infer (Fix exprF) tp m
-inferTC = snd . checkInferTC
+infer = snd . checkInfer
 
 combine
   :: forall exprF exprG tp m
