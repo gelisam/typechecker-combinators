@@ -15,19 +15,19 @@ module Typechecker.Core
   , unifier
   ) where
 
-import Control.Applicative (Alternative(empty))
+import Control.Applicative (empty)
 import Control.Monad (guard)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Control.Monad.Trans.Maybe (runMaybeT)
+import Control.Monad.Trans.Maybe (MaybeT, mapMaybeT)
 
 import Typechecker.Fix
 import Typechecker.Unification
 
 
 type Check term tp m
-  = term -> tp -> m ()
+  = term -> tp -> MaybeT m ()
 type Infer term tp m
-  = term -> m tp
+  = term -> MaybeT m tp
 
 data TypeChecker exprF tp m = TypeChecker
   { mkCheck
@@ -90,7 +90,7 @@ combine tcF tcG = TypeChecker mkCheckFG mkInferFG
       = mkInfer tcG checkR inferR gFix
 
 checker
-  :: forall exprF tp m. Alternative m
+  :: forall exprF tp m. Monad m
   => ( forall r
      . Check r tp m
     -> Infer r tp m
@@ -107,7 +107,7 @@ checker mkCheckF = TypeChecker mkCheckF mkInferF
       empty
 
 inferer
-  :: forall exprF tpF m. (Eq (Fix tpF), Monad m, Alternative m)
+  :: forall exprF tpF m. (Eq (Fix tpF), Monad m)
   => ( forall r
      . Check r (Fix tpF) m
     -> Infer r (Fix tpF) m
@@ -125,7 +125,7 @@ inferer mkInferF = TypeChecker mkCheckF mkInferF
       guard (actual == expected)
 
 unifier
-    :: forall exprF tpF m. (Match tpF, MonadIO m, Alternative m)
+    :: forall exprF tpF m. (Match tpF, MonadIO m)
   => ( forall r
      . Check r (Unifix tpF) m
     -> Infer r (Unifix tpF) m
@@ -140,8 +140,4 @@ unifier mkInferF = TypeChecker mkCheckF mkInferF
       -> Check (exprF r) (Unifix tpF) m
     mkCheckF checkR inferR fR expected = do
       actual <- mkInferF checkR inferR fR
-      (liftIO $ runMaybeT $ unify actual expected) >>= \case
-        Nothing -> do
-          empty
-        Just () -> do
-          pure ()
+      mapMaybeT liftIO $ unify actual expected
