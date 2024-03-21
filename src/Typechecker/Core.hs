@@ -1,5 +1,7 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 module Typechecker.Core
   ( Check
@@ -10,12 +12,16 @@ module Typechecker.Core
   , combine
   , checker
   , inferer
+  , unifier
   ) where
 
 import Control.Applicative (Alternative(empty))
 import Control.Monad (guard)
+import Control.Monad.IO.Class (MonadIO(liftIO))
+import Control.Monad.Trans.Maybe (runMaybeT)
 
 import Typechecker.Fix
+import Typechecker.Unification
 
 
 type Check term tp m
@@ -101,19 +107,41 @@ checker mkCheckF = TypeChecker mkCheckF mkInferF
       empty
 
 inferer
-  :: forall exprF tp m. (Eq tp, Monad m, Alternative m)
+  :: forall exprF tpF m. (Eq (Fix tpF), Monad m, Alternative m)
   => ( forall r
-     . Check r tp m
-    -> Infer r tp m
-    -> Infer (exprF r) tp m
+     . Check r (Fix tpF) m
+    -> Infer r (Fix tpF) m
+    -> Infer (exprF r) (Fix tpF) m
      )
-  -> TypeChecker exprF tp m
+  -> TypeChecker exprF (Fix tpF) m
 inferer mkInferF = TypeChecker mkCheckF mkInferF
   where
     mkCheckF
-      :: Check r tp m
-      -> Infer r tp m
-      -> Check (exprF r) tp m
+      :: Check r (Fix tpF) m
+      -> Infer r (Fix tpF) m
+      -> Check (exprF r) (Fix tpF) m
     mkCheckF checkR inferR fR expected = do
       actual <- mkInferF checkR inferR fR
       guard (actual == expected)
+
+unifier
+    :: forall exprF tpF m. (Match tpF, MonadIO m, Alternative m)
+  => ( forall r
+     . Check r (Unifix tpF) m
+    -> Infer r (Unifix tpF) m
+    -> Infer (exprF r) (Unifix tpF) m
+     )
+  -> TypeChecker exprF (Unifix tpF) m
+unifier mkInferF = TypeChecker mkCheckF mkInferF
+  where
+    mkCheckF
+      :: Check r (Unifix tpF) m
+      -> Infer r (Unifix tpF) m
+      -> Check (exprF r) (Unifix tpF) m
+    mkCheckF checkR inferR fR expected = do
+      actual <- mkInferF checkR inferR fR
+      (liftIO $ runMaybeT $ unify actual expected) >>= \case
+        Nothing -> do
+          empty
+        Just () -> do
+          pure ()
