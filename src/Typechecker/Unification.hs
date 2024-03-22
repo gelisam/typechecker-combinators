@@ -3,16 +3,30 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Typechecker.Unification where
+module Typechecker.Unification
+  ( Match
+  , UnificationState
+  , emptyUnificationState
+  , WhichUnificationState
+  , Unifix
+  , newUnivar
+  , uniroll
+  , noUnivars
+  , unify
+  ) where
 
+import Control.Lens (Lens', use, (.=), (+=), (%=), makeLenses)
 import Control.Monad (guard)
-import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT))
+import Control.Monad.State (MonadState)
 import Data.Foldable (for_)
-import Data.UnionFind.IO qualified as UnionFind
+import Data.IntMap.Strict (IntMap)
+import Data.IntMap.Strict qualified as IntMap
+import Data.UnionFind.IntMap qualified as UnionFind
 
 import Typechecker.Fix
 
@@ -68,29 +82,57 @@ matchM fs1 fs2 cc = do
     Nothing -> do
       pure Nothing
     Just mr -> do
-      r <- mr
-      pure $ Just r
+      Just <$> mr
 
 
-newtype Univar tpF = Univar
-  { unUnivar :: UnionFind.Point (Maybe (tpF (Unifix tpF)))
+data Unifix tpF
+  = UnifixV (UnionFind.Point Int)
+  | UnifixF (tpF (Unifix tpF))
+
+data UnificationState tpF = UnificationState
+  { _unificationState_PointSupply
+      :: !(UnionFind.PointSupply Int)
+  , _unificationState_NextUnivar
+      :: !Int
+  , _unificationState_Contents
+      :: !(IntMap (tpF (Unifix tpF)))
+  }
+makeLenses ''UnificationState
+
+type WhichUnificationState s tpF = Lens' s (UnificationState tpF)
+
+emptyUnificationState
+  :: UnificationState tpF
+emptyUnificationState = UnificationState
+  { _unificationState_PointSupply
+      = UnionFind.newPointSupply
+  , _unificationState_NextUnivar
+      = 0
+  , _unificationState_Contents
+      = IntMap.empty
   }
 
 eqV
-  :: Univar tpF
-  -> Univar tpF
-  -> IO Bool
-eqV (Univar pt1) (Univar pt2) = do
-  UnionFind.equivalent pt1 pt2
-
-data Unifix tpF
-  = UnifixV (Univar tpF)
-  | UnifixF (tpF (Unifix tpF))
+  :: MonadState s m
+  => WhichUnificationState s tpF
+  -> UnionFind.Point Int
+  -> UnionFind.Point Int
+  -> m Bool
+eqV unificationState pt1 pt2 = do
+  pointSupply <- use (unificationState . unificationState_PointSupply)
+  pure $ UnionFind.equivalent pointSupply pt1 pt2
 
 newUnivar
-  :: IO (Unifix tpF)
-newUnivar = do
-  UnifixV <$> Univar <$> UnionFind.fresh Nothing
+  :: MonadState s m
+  => WhichUnificationState s tpF
+  -> m (Unifix tpF)
+newUnivar unificationState = do
+  pointSupply <- use (unificationState . unificationState_PointSupply)
+  nextUnivar <- use (unificationState . unificationState_NextUnivar)
+  let (pointSupply', pt) = UnionFind.fresh pointSupply nextUnivar
+  unificationState . unificationState_PointSupply .= pointSupply'
+  unificationState . unificationState_NextUnivar += 1
+  pure $ UnifixV pt
 
 uniroll :: Elem f fs => f (Unifix fs) -> Unifix fs
 uniroll = UnifixF . inj
@@ -98,37 +140,42 @@ uniroll = UnifixF . inj
 -- make sure the outer layer is a UnifixF if possible,
 -- and the representative variable otherwise.
 zonk1
-  :: Functor tpF
-  => Unifix tpF
-  -> IO (Unifix tpF)
-zonk1 (UnifixV (Univar pt)) = do
-  UnionFind.descriptor pt >>= \case
+  :: MonadState s m
+  => WhichUnificationState s tpF
+  -> Unifix tpF
+  -> m (Unifix tpF)
+zonk1 unificationState (UnifixV pt) = do
+  pointSupply <- use (unificationState . unificationState_PointSupply)
+  contents <- use (unificationState . unificationState_Contents)
+  let i = UnionFind.descriptor pointSupply pt
+  case IntMap.lookup i contents of
     Nothing -> do
-      repr <- Univar <$> UnionFind.repr pt
-      pure $ UnifixV repr
+      pure $ UnifixV $ UnionFind.repr pointSupply pt
     Just fX -> do
       pure $ UnifixF fX
-zonk1 (UnifixF fX) = do
+zonk1 _whichUnificationState (UnifixF fX) = do
   pure $ UnifixF fX
 
 -- expand all variables to UnifixF when possible,
 -- and use the representative variable otherwise.
 zonk
-  :: Traversable tpF
-  => Unifix tpF
-  -> IO (Unifix tpF)
-zonk x = do
-  zonk1 x >>= \case
+  :: (MonadState s m, Traversable tpF)
+  => WhichUnificationState s tpF
+  -> Unifix tpF
+  -> m (Unifix tpF)
+zonk unificationState x = do
+  zonk1 unificationState x >>= \case
     UnifixV repr -> do
       pure $ UnifixV repr
     UnifixF fX -> do
-      UnifixF <$> traverse zonk fX
+      UnifixF <$> traverse (zonk unificationState) fX
 
 noUnivars
-  :: forall tpF. Traversable tpF
-  => Unifix tpF
-  -> MaybeT IO (Fix tpF)
-noUnivars x0 = MaybeT (go <$> zonk x0)
+  :: forall s m tpF. (MonadState s m, Traversable tpF)
+  => WhichUnificationState s tpF
+  -> Unifix tpF
+  -> MaybeT m (Fix tpF)
+noUnivars unificationState x0 = MaybeT (go <$> zonk unificationState x0)
   where
     go
       :: Unifix tpF
@@ -139,21 +186,22 @@ noUnivars x0 = MaybeT (go <$> zonk x0)
       Fix <$> traverse go fX
 
 occursIn
-  :: forall tpF. Traversable tpF
-  => Univar tpF
+  :: forall s m tpF. (MonadState s m, Traversable tpF)
+  => WhichUnificationState s tpF
+  -> UnionFind.Point Int
   -> Unifix tpF
-  -> IO Bool
-occursIn (Univar pt0) x0 = do
-  pt <- UnionFind.repr pt0
-  x <- zonk x0
-  go (Univar pt) x
+  -> m Bool
+occursIn unificationState pt0 x0 = do
+  pointSupply <- use (unificationState . unificationState_PointSupply)
+  x <- zonk unificationState x0
+  go (UnionFind.repr pointSupply pt0) x
   where
     go
-      :: Univar tpF
+      :: UnionFind.Point Int
       -> Unifix tpF
-      -> IO Bool
+      -> m Bool
     go needle (UnifixV v) = do
-      eqV needle v
+      eqV unificationState needle v
     go needle (UnifixF fX) = do
       or <$> traverse (go needle) fX
 
@@ -185,25 +233,26 @@ occursIn (Univar pt0) x0 = do
 -- >>> runMaybeT $ unify tp1 tp2
 -- Nothing
 unify
-  :: forall tpF. Match tpF
-  => Unifix tpF
+  :: forall s m tpF. (MonadState s m, Match tpF)
+  => WhichUnificationState s tpF
   -> Unifix tpF
-  -> MaybeT IO ()
-unify = unifyXX
+  -> Unifix tpF
+  -> MaybeT m ()
+unify whichUnificationState = unifyXX
   where
     unifyXX
       :: Unifix tpF
       -> Unifix tpF
-      -> MaybeT IO ()
+      -> MaybeT m ()
     unifyXX x1 x2 = do
-      z1 <- lift $ zonk1 x1
-      z2 <- lift $ zonk1 x2
+      z1 <- zonk whichUnificationState x1
+      z2 <- zonk whichUnificationState x2
       unifyZZ z1 z2
 
     unifyZZ
       :: Unifix tpF
       -> Unifix tpF
-      -> MaybeT IO ()
+      -> MaybeT m ()
     unifyZZ (UnifixV repr1) (UnifixV repr2) = do
       unifyRR repr1 repr2
     unifyZZ (UnifixV repr) (UnifixF fX) = do
@@ -214,25 +263,29 @@ unify = unifyXX
       unifyFF fX1 fX2
 
     unifyRR
-      :: Univar tpF
-      -> Univar tpF
-      -> MaybeT IO ()
-    unifyRR (Univar repr1) (Univar repr2) = do
-      lift $ UnionFind.union repr1 repr2
+      :: UnionFind.Point Int
+      -> UnionFind.Point Int
+      -> MaybeT m ()
+    unifyRR repr1 repr2 = do
+      pointSupply <- use (whichUnificationState . unificationState_PointSupply)
+      let pointSupply' = UnionFind.union pointSupply repr1 repr2
+      whichUnificationState . unificationState_PointSupply .= pointSupply'
 
     unifyRF
-      :: Univar tpF
+      :: UnionFind.Point Int
       -> tpF (Unifix tpF)
-      -> MaybeT IO ()
-    unifyRF (Univar pt) fX = do
-      bad <- lift $ occursIn (Univar pt) (UnifixF fX)
+      -> MaybeT m ()
+    unifyRF pt fX = do
+      bad <- occursIn whichUnificationState pt (UnifixF fX)
       guard (not bad)
-      lift $ UnionFind.setDescriptor pt $ Just fX
+      pointSupply <- use (whichUnificationState . unificationState_PointSupply)
+      let i = UnionFind.descriptor pointSupply pt
+      whichUnificationState . unificationState_Contents %= IntMap.insert i fX
 
     unifyFF
       :: tpF (Unifix tpF)
       -> tpF (Unifix tpF)
-      -> MaybeT IO ()
+      -> MaybeT m ()
     unifyFF fX1 fX2 = do
       maybeUnit <- matchM fX1 fX2 $ \fX1' fX2' -> do
         for_ ((,) <$> fX1' <*> fX2') $ \(x1, x2) -> do

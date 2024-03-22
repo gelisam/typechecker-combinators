@@ -20,6 +20,7 @@ library
                      , Typechecker.Unification
   build-depends:       base
                      , containers
+                     , lens
                      , mtl
                      , transformers
                      , union-find

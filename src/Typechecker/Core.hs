@@ -17,8 +17,8 @@ module Typechecker.Core
 
 import Control.Applicative (empty)
 import Control.Monad (guard)
-import Control.Monad.IO.Class (MonadIO(liftIO))
-import Control.Monad.Trans.Maybe (MaybeT, mapMaybeT)
+import Control.Monad.State (MonadState)
+import Control.Monad.Trans.Maybe (MaybeT)
 
 import Typechecker.Fix
 import Typechecker.Unification
@@ -125,14 +125,15 @@ inferer mkInferF = TypeChecker mkCheckF mkInferF
       guard (actual == expected)
 
 unifier
-    :: forall exprF tpF m. (Match tpF, MonadIO m)
-  => ( forall r
+    :: forall exprF tpF s m. (Match tpF, MonadState s m)
+  => WhichUnificationState s tpF
+  -> ( forall r
      . Check r (Unifix tpF) m
     -> Infer r (Unifix tpF) m
     -> Infer (exprF r) (Unifix tpF) m
      )
   -> TypeChecker exprF (Unifix tpF) m
-unifier mkInferF = TypeChecker mkCheckF mkInferF
+unifier unificationState mkInferF = TypeChecker mkCheckF mkInferF
   where
     mkCheckF
       :: Check r (Unifix tpF) m
@@ -140,4 +141,4 @@ unifier mkInferF = TypeChecker mkCheckF mkInferF
       -> Check (exprF r) (Unifix tpF) m
     mkCheckF checkR inferR fR expected = do
       actual <- mkInferF checkR inferR fR
-      mapMaybeT liftIO $ unify actual expected
+      unify unificationState actual expected
