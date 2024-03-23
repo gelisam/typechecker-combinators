@@ -20,6 +20,7 @@ library
                      , Typechecker.Terms
                      , Typechecker.Types
                      , Typechecker.Unifix
+                     , Typechecker.Unify
   build-depends:       base
                      , containers
                      , lens

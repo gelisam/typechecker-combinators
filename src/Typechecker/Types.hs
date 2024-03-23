@@ -6,7 +6,7 @@
 module Typechecker.Types where
 
 import Typechecker.Sum
-import Typechecker.Unifix
+import Typechecker.Fix
 
 
 data Arr ty = Arr ty ty
@@ -48,13 +48,13 @@ deriving instance Traversable Nat
 
 
 arr
-  :: Elem Arr tpF
-  => Unifix tpF
-  -> Unifix tpF
-  -> Unifix tpF
-arr x y = uniroll $ Arr x y
+  :: (Roll fix, Elem Arr tpF)
+  => fix tpF
+  -> fix tpF
+  -> fix tpF
+arr x y = roll $ Arr x y
 
 nat
-  :: Elem Nat tpF
-  => Unifix tpF
-nat = uniroll Nat
+  :: (Roll fix, Elem Nat tpF)
+  => fix tpF
+nat = roll Nat

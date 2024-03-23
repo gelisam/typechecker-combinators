@@ -19,16 +19,18 @@ instance Show (f (Fix f))
          where
   showsPrec p (Fix fFix) = showsPrec p fFix
 
-roll
-  :: Elem f fs
-  => f (Fix fs)
-  -> Fix fs
-roll
-  = Fix . inj
+class Roll fix where
+  roll
+    :: Elem f fs
+    => f (fix fs)
+    -> fix fs
+  unroll
+    :: Elem f fs
+    => fix fs
+    -> Maybe (f (fix fs))
 
-unroll
-  :: Elem f fs
-  => Fix fs
-  -> Maybe (f (Fix fs))
-unroll
-  = prj . unFix
+instance Roll Fix where
+  roll
+    = Fix . inj
+  unroll
+    = prj . unFix

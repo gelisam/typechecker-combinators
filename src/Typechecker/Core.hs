@@ -22,7 +22,7 @@ import Control.Monad.Trans.Maybe (MaybeT)
 import Typechecker.Fix
 import Typechecker.Match
 import Typechecker.Sum
-import Typechecker.Unifix
+import Typechecker.Unify
 
 
 type Check term tp m
