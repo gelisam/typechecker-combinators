@@ -15,9 +15,11 @@ library
   exposed-modules:     Demo
                      , Typechecker.Core
                      , Typechecker.Fix
+                     , Typechecker.Match
+                     , Typechecker.Sum
                      , Typechecker.Terms
                      , Typechecker.Types
-                     , Typechecker.Unification
+                     , Typechecker.Unifix
   build-depends:       base
                      , containers
                      , lens

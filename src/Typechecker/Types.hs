@@ -1,15 +1,12 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 module Typechecker.Types where
 
-import Typechecker.Fix
-import Typechecker.Unification
+import Typechecker.Sum
+import Typechecker.Unifix
 
 
 data Arr ty = Arr ty ty

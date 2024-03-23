@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
@@ -21,7 +20,9 @@ import Control.Monad.State (MonadState)
 import Control.Monad.Trans.Maybe (MaybeT)
 
 import Typechecker.Fix
-import Typechecker.Unification
+import Typechecker.Match
+import Typechecker.Sum
+import Typechecker.Unifix
 
 
 type Check term tp m

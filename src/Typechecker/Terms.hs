@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Typechecker.Terms where
 
+import Typechecker.Sum
 import Typechecker.Fix
 
 
