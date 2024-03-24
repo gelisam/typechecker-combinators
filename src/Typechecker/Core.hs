@@ -1,14 +1,15 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 module Typechecker.Core
   ( Check
   , Infer
   , TypeChecker
-  , check
-  , infer
-  , combine
+  , checkWithTypeChecker
+  , inferWithTypeChecker
+  , (<+>)
   , checker
   , inferer
   , unifier
@@ -43,34 +44,34 @@ data TypeChecker exprF tp m = TypeChecker
       -> Infer (exprF r) tp m
   }
 
-checkInfer
+checkInferWithTypeChecker
   :: TypeChecker exprF tp m
   -> ( Check (Fix exprF) tp m
      , Infer (Fix exprF) tp m
      )
-checkInfer tc = (checkR, inferR)
+checkInferWithTypeChecker tc = (checkR, inferR)
   where
     checkR (Fix fFix) tp
       = mkCheck tc checkR inferR fFix tp
     inferR (Fix fFix)
       = mkInfer tc checkR inferR fFix
 
-check
+checkWithTypeChecker
   :: TypeChecker exprF tp m
   -> Check (Fix exprF) tp m
-check = fst . checkInfer
+checkWithTypeChecker = fst . checkInferWithTypeChecker
 
-infer
+inferWithTypeChecker
   :: TypeChecker exprF tp m
   -> Infer (Fix exprF) tp m
-infer = snd . checkInfer
+inferWithTypeChecker = snd . checkInferWithTypeChecker
 
-combine
+(<+>)
   :: forall exprF exprG tp m
    . TypeChecker exprF tp m
   -> TypeChecker exprG tp m
   -> TypeChecker (exprF + exprG) tp m
-combine tcF tcG = TypeChecker mkCheckFG mkInferFG
+tcF <+> tcG = TypeChecker mkCheckFG mkInferFG
   where
     mkCheckFG
       :: Check r tp m

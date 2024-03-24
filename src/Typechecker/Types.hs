@@ -14,6 +14,11 @@ data Arr ty = Arr ty ty
 data Nat ty = Nat
 
 
+deriving instance Eq term => Eq (Arr term)
+
+deriving instance Eq (Nat term)
+
+
 deriving instance Show term => Show (Arr term)
 
 deriving instance Show (Nat term)

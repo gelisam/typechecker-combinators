@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Demo
+                     , Typechecker.Combinators
                      , Typechecker.Core
                      , Typechecker.Fix
                      , Typechecker.Match

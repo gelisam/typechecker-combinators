@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -14,10 +15,13 @@ newtype Fix f = Fix
   { unFix :: f (Fix f)
   }
 
+deriving instance Eq (f (Fix f)) => Eq (Fix f)
+
 instance Show (f (Fix f))
       => Show (Fix f)
          where
-  showsPrec p (Fix fFix) = showsPrec p fFix
+  showsPrec p (Fix fFix)
+    = showsPrec p fFix
 
 class Roll fix where
   roll
