@@ -17,7 +17,6 @@ module Typechecker.Core
 
 import Control.Applicative (empty)
 import Control.Monad (guard)
-import Control.Monad.State (MonadState)
 import Control.Monad.Trans.Maybe (MaybeT)
 
 import Typechecker.Fix
@@ -51,8 +50,8 @@ checkInferWithTypeChecker
      )
 checkInferWithTypeChecker tc = (checkR, inferR)
   where
-    checkR (Fix fFix) tp
-      = mkCheck tc checkR inferR fFix tp
+    checkR (Fix fFix)
+      = mkCheck tc checkR inferR fFix
     inferR (Fix fFix)
       = mkInfer tc checkR inferR fFix
 
@@ -127,15 +126,14 @@ inferer mkInferF = TypeChecker mkCheckF mkInferF
       guard (actual == expected)
 
 unifier
-    :: forall exprF tpF s m. (Match tpF, MonadState s m)
-  => WhichUnificationState s tpF
-  -> ( forall r
+    :: forall exprF tpF s m. (Match tpF, MonadUnification s tpF m)
+  => ( forall r
      . Check r (Unifix tpF) m
     -> Infer r (Unifix tpF) m
     -> Infer (exprF r) (Unifix tpF) m
      )
   -> TypeChecker exprF (Unifix tpF) m
-unifier unificationState mkInferF = TypeChecker mkCheckF mkInferF
+unifier mkInferF = TypeChecker mkCheckF mkInferF
   where
     mkCheckF
       :: Check r (Unifix tpF) m
@@ -143,4 +141,4 @@ unifier unificationState mkInferF = TypeChecker mkCheckF mkInferF
       -> Check (exprF r) (Unifix tpF) m
     mkCheckF checkR inferR fR expected = do
       actual <- mkInferF checkR inferR fR
-      unify unificationState actual expected
+      unify actual expected
