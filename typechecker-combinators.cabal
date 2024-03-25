@@ -17,6 +17,7 @@ library
                      , Typechecker.Core
                      , Typechecker.Fix
                      , Typechecker.Match
+                     , Typechecker.MonadEq
                      , Typechecker.Sum
                      , Typechecker.Terms
                      , Typechecker.Types
@@ -37,3 +38,4 @@ executable regenerate-readme
   build-depends:       base
   default-language:    Haskell2010
   ghc-options:         -W -Wall
+  extra-source-files:  src/Demo.hs
