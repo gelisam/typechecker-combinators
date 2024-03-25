@@ -13,7 +13,6 @@ module Typechecker.Unify
   , WhichUnificationState
   , Unifix
   , newUnivar
-  , uniroll
   , noUnivars
   , unify
   ) where
@@ -29,7 +28,6 @@ import Data.UnionFind.IntMap qualified as UnionFind
 
 import Typechecker.Fix
 import Typechecker.Match
-import Typechecker.Sum
 import Typechecker.Unifix
 
 -- $setup
@@ -81,9 +79,6 @@ newUnivar unificationState = do
   unificationState . unificationState_PointSupply .= pointSupply'
   unificationState . unificationState_NextUnivar += 1
   pure $ UnifixV pt
-
-uniroll :: Elem f fs => f (Unifix fs) -> Unifix fs
-uniroll = UnifixF . inj
 
 -- make sure the outer layer is a UnifixF if possible,
 -- and the representative variable otherwise.
