@@ -14,10 +14,6 @@ data App term = App term term
 
 data Lam term = Lam String term
 
-data Zero term = Zero
-
-newtype Succ term = Succ term
-
 newtype NatLit term = NatLit Int
 
 data Plus term = Plus term term
@@ -28,10 +24,6 @@ deriving instance Show (Var term)
 deriving instance Show term => Show (App term)
 
 deriving instance Show term => Show (Lam term)
-
-deriving instance Show (Zero term)
-
-deriving instance Show term => Show (Succ term)
 
 deriving instance Show (NatLit term)
 
@@ -56,17 +48,6 @@ lam
   => String -> Fix exprF
   -> Fix exprF
 lam x y = roll $ Lam x y
-
-zero
-  :: Elem Zero exprF
-  => Fix exprF
-zero = roll Zero
-
-succ
-  :: Elem Succ exprF
-  => Fix exprF
-  -> Fix exprF
-succ x = roll $ Succ x
 
 natLit
   :: Elem NatLit exprF
