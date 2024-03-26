@@ -23,6 +23,15 @@ data (+) f g a
   = InL (f a)
   | InR (g a)
 
+instance ( Eq (f a)
+         , Eq (g a)
+         )
+        => Eq ((+) f g a)
+           where
+  InL fa1 == InL fa2 = fa1 == fa2
+  InR ga1 == InR ga2 = ga1 == ga2
+  _ == _ = False
+
 instance ( Show (f a)
          , Show (g a)
          )

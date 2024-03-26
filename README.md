@@ -39,11 +39,20 @@ plusTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker Plus (fix tpF) m
-plusTC = inferer $ \check _infer (Plus x y) -> do
-  check x nat
-  check y nat
+plusTC = inferer $ \check _infer (Plus x1 x2) -> do
+  check x1 nat
+  check x2 nat
   pure nat
 
+huttonTC
+  :: ( Elem Nat tpF
+     , Roll fix
+     , MonadEq (fix tpF) m
+     )
+  => TypeChecker Hutton (fix tpF) m
+huttonTC
+    = natLitTC
+  <+> plusTC
 
 -- |
 -- >>> inferHutton huttonProgram
@@ -51,7 +60,7 @@ plusTC = inferer $ \check _infer (Plus x y) -> do
 inferHutton
   :: Fix Hutton
   -> MaybeT Identity (Fix Nat)
-inferHutton = inferWithTypeChecker (natLitTC <+> plusTC)
+inferHutton = inferWithTypeChecker huttonTC
 ```
 
 ### Explanation
@@ -93,5 +102,94 @@ present, the monad must support `MonadUnification`. In the case of
 
 ```haskell
 inferWithTypeChecker :: TypeChecker termF tp m -> Fix termF -> MaybeT m tp
+```
+
+## Base types
+
+Let's add strings to our language, so we can construct programs which do not
+type-check. To connect `Nat` and `Str`, let's add a function which measures
+the length of a string.
+
+```haskell
+length :: Str -> Nat
+```
+
+We will reuse `natList`, `natLitTC`, and `(+)` from before, but we will _not_
+reuse `plusTC`, because in this language, we want `(+)` to work with both
+`Nat` and `Str`. This demonstrates an advantage of using combinators over
+using a typeclass: more than one implementation of `TypeChecker Plus` can be
+defined.
+
+```haskell
+type Base = NatLit + Plus + StrLit + Len
+
+type BaseTypes = Nat + Str
+
+strLitTC
+  :: ( Elem Str tpF
+     , Roll fix
+     , MonadEq (fix tpF) m
+     )
+  => TypeChecker StrLit (fix tpF) m
+strLitTC = inferer $ \_check _infer (StrLit _s) -> do
+  pure str
+
+polyPlusTC
+  :: ( Elem Nat tpF
+     , Elem Str tpF
+     , Roll fix
+     , MonadEq (fix tpF) m
+     )
+  => TypeChecker Plus (fix tpF) m
+polyPlusTC = inferer $ \check infer (Plus x1 x2) -> do
+  t1 <- infer x1
+  check x2 t1
+  case unroll t1 of
+    Just Nat -> do
+      pure nat
+    Nothing -> do
+      case unroll t1 of
+        Just Str -> do
+          pure str
+        Nothing -> do
+          empty
+
+lenTC
+  :: ( Elem Nat tpF
+     , Elem Str tpF
+     , Roll fix
+     , MonadEq (fix tpF) m
+     )
+  => TypeChecker Len (fix tpF) m
+lenTC = inferer $ \check _infer (Len x) -> do
+  check x str
+  pure nat
+
+baseTC
+  :: ( Elem Nat tpF
+     , Elem Str tpF
+     , Roll fix
+     , MonadEq (fix tpF) m
+     )
+  => TypeChecker Base (fix tpF) m
+baseTC
+    = natLitTC
+  <+> polyPlusTC
+  <+> strLitTC
+  <+> lenTC
+
+-- |
+-- >>> inferBase (strLit "hello" + strLit "world")
+-- MaybeT (Identity (Just Str))
+--
+-- >>> inferBase (natLit 2 + len (strLit "hello"))
+-- MaybeT (Identity (Just Nat))
+--
+-- >>> inferBase (natLit 2 + strLit "hello")
+-- MaybeT (Identity Nothing)
+inferBase
+  :: Fix Base
+  -> MaybeT Identity (Fix BaseTypes)
+inferBase = inferWithTypeChecker baseTC
 ```
 

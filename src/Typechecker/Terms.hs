@@ -16,7 +16,11 @@ data Lam term = Lam String term
 
 newtype NatLit term = NatLit Int
 
+newtype StrLit term = StrLit String
+
 data Plus term = Plus term term
+
+data Len term = Len term
 
 
 deriving instance Show (Var term)
@@ -27,7 +31,11 @@ deriving instance Show term => Show (Lam term)
 
 deriving instance Show (NatLit term)
 
+deriving instance Show (StrLit term)
+
 deriving instance Show term => Show (Plus term)
+
+deriving instance Show term => Show (Len term)
 
 
 var
@@ -55,9 +63,21 @@ natLit
   -> Fix exprF
 natLit x = roll $ NatLit x
 
+strLit
+  :: Elem StrLit exprF
+  => String
+  -> Fix exprF
+strLit x = roll $ StrLit x
+
 (+)
   :: Elem Plus exprF
   => Fix exprF
   -> Fix exprF
   -> Fix exprF
 (+) x y = roll $ Plus x y
+
+len
+  :: Elem Len exprF
+  => Fix exprF
+  -> Fix exprF
+len x = roll $ Len x
