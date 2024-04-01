@@ -11,9 +11,7 @@ module Typechecker.Fix where
 import Typechecker.Sum
 
 
-newtype Fix f = Fix
-  { unFix :: f (Fix f)
-  }
+newtype Fix f = Fix (f (Fix f))
 
 deriving instance Eq (f (Fix f)) => Eq (Fix f)
 
@@ -24,17 +22,37 @@ instance Show (f (Fix f))
     = showsPrec p fFix
 
 class Roll fix where
-  roll
-    :: Elem f fs
-    => f (fix fs)
+  mkFix
+    :: fs (fix fs)
     -> fix fs
-  unroll
-    :: Elem f fs
-    => fix fs
-    -> Maybe (f (fix fs))
+  unFix
+    :: fix fs
+    -> Maybe (fs (fix fs))
 
 instance Roll Fix where
-  roll
-    = Fix . inj
-  unroll
-    = prj . unFix
+  mkFix
+    = Fix
+  unFix (Fix fFix) = do
+    pure fFix
+
+roll
+  :: (Roll fix, Elem f fs)
+  => f (fix fs)
+  -> fix fs
+roll
+  = mkFix . inj
+
+unroll
+  :: (Roll fix, Elem f fs)
+  => fix fs
+  -> Maybe (f (fix fs))
+unroll fix = do
+  fsFix <- unFix fix
+  prj fsFix
+
+reroll
+  :: (Roll fix, Functor fs)
+  => Fix fs
+  -> fix fs
+reroll (Fix fsFix)
+  = mkFix (fmap reroll fsFix)

@@ -19,9 +19,9 @@ data Unifix tpF
   | UnifixF (tpF (Unifix tpF))
 
 instance Roll Unifix where
-  roll
+  mkFix
     = UnifixF . inj
-  unroll (UnifixF fsUnifix)
-    = prj fsUnifix
-  unroll _
-    = Nothing
+  unFix (UnifixF fsUnifix) = do
+    pure fsUnifix
+  unFix _ = do
+    Nothing
