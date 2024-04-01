@@ -16,6 +16,7 @@ library
                      , Typechecker.Combinators
                      , Typechecker.Core
                      , Typechecker.Elem
+                     , Typechecker.Elems
                      , Typechecker.Fix
                      , Typechecker.Match
                      , Typechecker.MonadEq
