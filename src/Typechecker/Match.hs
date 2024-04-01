@@ -9,7 +9,7 @@ module Typechecker.Match
   , matchM
   ) where
 
-import Typechecker.Sum
+import Typechecker.Elem
 
 
 class Traversable fs => Match fs where

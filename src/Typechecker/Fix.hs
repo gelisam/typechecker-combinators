@@ -8,7 +8,7 @@
 
 module Typechecker.Fix where
 
-import Typechecker.Sum
+import Typechecker.Elem
 
 
 newtype Fix f = Fix (f (Fix f))

@@ -10,7 +10,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 -- Data Types à la Carte
-module Typechecker.Sum
+module Typechecker.Elem
   ( type (+)(InL, InR)
   , Elem(inj, prj)
   ) where

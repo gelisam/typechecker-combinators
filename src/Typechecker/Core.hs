@@ -17,9 +17,9 @@ module Typechecker.Core
 import Control.Applicative (empty)
 import Control.Monad.Trans.Maybe (MaybeT)
 
+import Typechecker.Elem
 import Typechecker.Fix
 import Typechecker.MonadEq
-import Typechecker.Sum
 
 
 type Check term tp m

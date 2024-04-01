@@ -10,8 +10,8 @@ module Typechecker.Unifix
 
 import Data.UnionFind.IntMap qualified as UnionFind
 
+import Typechecker.Elem
 import Typechecker.Fix
-import Typechecker.Sum
 
 
 data Unifix tpF

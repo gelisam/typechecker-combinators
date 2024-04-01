@@ -15,10 +15,10 @@ library
   exposed-modules:     Demo
                      , Typechecker.Combinators
                      , Typechecker.Core
+                     , Typechecker.Elem
                      , Typechecker.Fix
                      , Typechecker.Match
                      , Typechecker.MonadEq
-                     , Typechecker.Sum
                      , Typechecker.Terms
                      , Typechecker.Types
                      , Typechecker.Unifix
