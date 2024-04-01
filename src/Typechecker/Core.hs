@@ -1,17 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 module Typechecker.Core
-  ( Check
-  , Infer
+  ( Handle(check, infer)
   , TypeChecker
-  , checkWithTypeChecker
-  , inferWithTypeChecker
+  , runTypeChecker
   , (<+>)
-  , checker
-  , inferer
+  , checked
+  , infered
   ) where
 
 import Control.Applicative (empty)
@@ -22,102 +21,86 @@ import Typechecker.Fix
 import Typechecker.MonadEq
 
 
-type Check term tp m
-  = term -> tp -> MaybeT m ()
-type Infer term tp m
-  = term -> MaybeT m tp
-
-data TypeChecker exprF tp m = TypeChecker
-  { mkCheck
-      :: forall r
-       . Check r tp m
-      -> Infer r tp m
-      -> Check (exprF r) tp m
-  , mkInfer
-      :: forall r
-       . Check r tp m
-      -> Infer r tp m
-      -> Infer (exprF r) tp m
+data Handle term tp m = Handle
+  { check
+      :: term -> tp -> MaybeT m ()
+  , infer
+      :: term -> MaybeT m tp
   }
 
-checkInferWithTypeChecker
-  :: TypeChecker exprF tp m
-  -> ( Check (Fix exprF) tp m
-     , Infer (Fix exprF) tp m
-     )
-checkInferWithTypeChecker tc = (checkR, inferR)
+contramap
+  :: (term' -> term)
+  -> Handle term tp m
+  -> Handle term' tp m
+contramap f h = Handle
+  { check = \term' tp -> do
+      check h (f term') tp
+  , infer = \term' -> do
+      infer h (f term')
+  }
+
+newtype TypeChecker exprF tp m = TypeChecker
+  { unTypeChecker
+      :: forall r
+       . Handle r tp m
+      -> Handle (exprF r) tp m
+  }
+
+runTypeChecker
+  :: forall exprF tp m
+   . TypeChecker exprF tp m
+  -> Handle (Fix exprF) tp m
+runTypeChecker tc = handleFix
   where
-    checkR (Fix fFix)
-      = mkCheck tc checkR inferR fFix
-    inferR (Fix fFix)
-      = mkInfer tc checkR inferR fFix
+    handleFFix
+      :: Handle (exprF (Fix exprF)) tp m
+    handleFFix
+      = unTypeChecker tc handleFix
 
-checkWithTypeChecker
-  :: TypeChecker exprF tp m
-  -> Check (Fix exprF) tp m
-checkWithTypeChecker = fst . checkInferWithTypeChecker
-
-inferWithTypeChecker
-  :: TypeChecker exprF tp m
-  -> Infer (Fix exprF) tp m
-inferWithTypeChecker = snd . checkInferWithTypeChecker
+    handleFix
+      :: Handle (Fix exprF) tp m
+    handleFix
+      = contramap unFix handleFFix
 
 (<+>)
   :: forall exprF exprG tp m
    . TypeChecker exprF tp m
   -> TypeChecker exprG tp m
   -> TypeChecker (exprF + exprG) tp m
-tcF <+> tcG = TypeChecker mkCheckFG mkInferFG
-  where
-    mkCheckFG
-      :: Check r tp m
-      -> Infer r tp m
-      -> Check ((+) exprF exprG r) tp m
-    mkCheckFG checkR inferR (InL fFix) tp
-      = mkCheck tcF checkR inferR fFix tp
-    mkCheckFG checkR inferR (InR gFix) tp
-      = mkCheck tcG checkR inferR gFix tp
+tcF <+> tcG = TypeChecker $ \handleR -> Handle
+  { check = \case
+      InL fFix -> check (unTypeChecker tcF handleR) fFix
+      InR gFix -> check (unTypeChecker tcG handleR) gFix
+  , infer = \case
+      InL fFix -> infer (unTypeChecker tcF handleR) fFix
+      InR gFix -> infer (unTypeChecker tcG handleR) gFix
+  }
 
-    mkInferFG
-      :: Check r tp m
-      -> Infer r tp m
-      -> Infer ((+) exprF exprG r) tp m
-    mkInferFG checkR inferR (InL fFix)
-      = mkInfer tcF checkR inferR fFix
-    mkInferFG checkR inferR (InR gFix)
-      = mkInfer tcG checkR inferR gFix
-
-checker
+checked
   :: forall exprF tp m. Monad m
   => ( forall r
-     . Check r tp m
-    -> Infer r tp m
-    -> Check (exprF r) tp m
+     . Handle r tp m
+    -> exprF r
+    -> tp
+    -> MaybeT m ()
      )
   -> TypeChecker exprF tp m
-checker mkCheckF = TypeChecker mkCheckF mkInferF
-  where
-    mkInferF
-      :: Check r tp m
-      -> Infer r tp m
-      -> Infer (exprF r) tp m
-    mkInferF _checkR _inferR _fR = do
-      empty
+checked checkF = TypeChecker $ \handleR -> Handle
+  { check = checkF handleR
+  , infer = const empty
+  }
 
-inferer
+infered
   :: forall exprF tp m. MonadEq tp m
   => ( forall r
-     . Check r tp m
-    -> Infer r tp m
-    -> Infer (exprF r) tp m
+     . Handle r tp m
+    -> exprF r
+    -> MaybeT m tp
      )
   -> TypeChecker exprF tp m
-inferer mkInferF = TypeChecker mkCheckF mkInferF
-  where
-    mkCheckF
-      :: Check r tp m
-      -> Infer r tp m
-      -> Check (exprF r) tp m
-    mkCheckF checkR inferR fR expected = do
-      actual <- mkInferF checkR inferR fR
+infered inferF = TypeChecker $ \handleR -> Handle
+  { check = \fR expected -> do
+      actual <- inferF handleR fR
       assertEq actual expected
+  , infer = inferF handleR
+  }

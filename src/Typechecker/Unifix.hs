@@ -21,7 +21,7 @@ data Unifix tpF
 instance Roll Unifix where
   mkFix
     = UnifixF . inj
-  unFix (UnifixF fsUnifix) = do
+  matchFix (UnifixF fsUnifix) = do
     pure fsUnifix
-  unFix _ = do
+  matchFix _ = do
     Nothing

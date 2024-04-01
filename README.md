@@ -30,7 +30,7 @@ natLitTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker NatLit (fix tpF) m
-natLitTC = inferer $ \_check _infer (NatLit _n) -> do
+natLitTC = infered $ \_h (NatLit _n) -> do
   pure nat
 
 plusTC
@@ -39,9 +39,9 @@ plusTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker Plus (fix tpF) m
-plusTC = inferer $ \check _infer (Plus x1 x2) -> do
-  check x1 nat
-  check x2 nat
+plusTC = infered $ \h (Plus x1 x2) -> do
+  check h x1 nat
+  check h x2 nat
   pure nat
 
 huttonTC
@@ -60,13 +60,13 @@ huttonTC
 inferHutton
   :: Fix Hutton
   -> MaybeT Identity (Fix Nat)
-inferHutton = inferWithTypeChecker huttonTC
+inferHutton = infer (runTypeChecker huttonTC)
 ```
 
 ### Explanation
 
 As you can see, typechecker combinators use bidirectional typechecking. There
-are two kinds of combinators, `inferer`, and `checker`, depending on which
+are two kinds of combinators, `checked`, and `infered`, depending on which
 direction should be used for the construct in question, and the combinator is
 implemented by making recursive calls to `check` and `infer`.
 
@@ -101,7 +101,8 @@ present, the monad must support `MonadUnification`. In the case of
 `inferHutton`, we use `Fix`, so the `Identity` monad suffices.
 
 ```haskell
-inferWithTypeChecker :: TypeChecker termF tp m -> Fix termF -> MaybeT m tp
+runTypeChecker :: TypeChecker termF tp m -> Handle (Fix termF) tp m
+infer :: Handle (Fix termF) tp m -> Fix termF -> MaybeT m tp
 ```
 
 ## Base types
@@ -131,7 +132,7 @@ strLitTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker StrLit (fix tpF) m
-strLitTC = inferer $ \_check _infer (StrLit _s) -> do
+strLitTC = infered $ \_h (StrLit _s) -> do
   pure str
 
 polyPlusTC
@@ -141,9 +142,9 @@ polyPlusTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker Plus (fix tpF) m
-polyPlusTC = inferer $ \check infer (Plus x1 x2) -> do
-  t1 <- infer x1
-  check x2 t1
+polyPlusTC = infered $ \h (Plus x1 x2) -> do
+  t1 <- infer h x1
+  check h x2 t1
   case unroll t1 of
     Just Nat -> do
       pure nat
@@ -161,8 +162,8 @@ lenTC
      , MonadEq (fix tpF) m
      )
   => TypeChecker Len (fix tpF) m
-lenTC = inferer $ \check _infer (Len x) -> do
-  check x str
+lenTC = infered $ \h (Len x) -> do
+  check h x str
   pure nat
 
 baseTC
@@ -190,6 +191,6 @@ baseTC
 inferBase
   :: Fix Base
   -> MaybeT Identity (Fix BaseTypes)
-inferBase = inferWithTypeChecker baseTC
+inferBase = infer (runTypeChecker baseTC)
 ```
 

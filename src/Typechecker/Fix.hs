@@ -11,7 +11,9 @@ module Typechecker.Fix where
 import Typechecker.Elem
 
 
-newtype Fix f = Fix (f (Fix f))
+newtype Fix f = Fix
+  { unFix :: f (Fix f)
+  }
 
 deriving instance Eq (f (Fix f)) => Eq (Fix f)
 
@@ -25,14 +27,14 @@ class Roll fix where
   mkFix
     :: fs (fix fs)
     -> fix fs
-  unFix
+  matchFix
     :: fix fs
     -> Maybe (fs (fix fs))
 
 instance Roll Fix where
   mkFix
     = Fix
-  unFix (Fix fFix) = do
+  matchFix (Fix fFix) = do
     pure fFix
 
 roll
@@ -47,7 +49,7 @@ unroll
   => fix fs
   -> Maybe (f (fix fs))
 unroll fix = do
-  fsFix <- unFix fix
+  fsFix <- matchFix fix
   prj fsFix
 
 reroll
