@@ -34,9 +34,9 @@ huttonProgram
   = natLit 2 + natLit 3 + natLit 4
 
 -- The typechecker for this language is not very interesting since every term
--- has type Nat; what is interesting is that the two typechecker combinators we
--- implement for this language can be reused in the more complex languages later
--- in this file. That's the magic of combinators!
+-- has type `Nat`; what is interesting is that the two typechecker combinators
+-- we implement for this language can be reused in the more complex languages
+-- later in this file. That's the magic of combinators!
 
 natLitTC
   :: ( Elem Nat tpF
