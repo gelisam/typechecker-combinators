@@ -8,7 +8,7 @@ import Prelude hiding ((+), (*))
 import Control.Applicative (empty)
 import Data.Functor.Identity
 
-import TypecheckerCombinators.Combinators
+import TypecheckerCombinators
 import TypecheckerCombinators.Terms
 import TypecheckerCombinators.Types
 

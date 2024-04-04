@@ -1,5 +1,5 @@
 {-# LANGUAGE ExplicitNamespaces #-}
-module TypecheckerCombinators.Combinators
+module TypecheckerCombinators
   ( MaybeT
   , runMaybeT
   , module X
