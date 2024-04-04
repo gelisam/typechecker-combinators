@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators #-}
 
 -- Data Types à la Carte
-module Typechecker.Sum
+module TypecheckerCombinators.Sum
   ( type (+)(InL, InR)
   ) where
 

@@ -3,13 +3,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Typechecker.MonadEq where
+module TypecheckerCombinators.MonadEq where
 
 import Control.Monad (guard)
 import Control.Monad.Trans.Maybe (MaybeT)
 
-import Typechecker.Fix
-import Typechecker.Unify
+import TypecheckerCombinators.Fix
+import TypecheckerCombinators.Unify
 
 
 class Monad m => MonadEq tp m where

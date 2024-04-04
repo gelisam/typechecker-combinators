@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-module Typechecker.Core
+module TypecheckerCombinators.Core
   ( Handle(check, infer)
   , TypeChecker
   , runTypeChecker
@@ -17,11 +17,11 @@ module Typechecker.Core
 import Control.Applicative (empty)
 import Control.Monad.Trans.Maybe (MaybeT)
 
-import Typechecker.Fix
-import Typechecker.Handle (Handle(Handle, check, infer))
-import Typechecker.Handle qualified as Handle
-import Typechecker.MonadEq
-import Typechecker.Sum
+import TypecheckerCombinators.Fix
+import TypecheckerCombinators.Handle (Handle(Handle, check, infer))
+import TypecheckerCombinators.Handle qualified as Handle
+import TypecheckerCombinators.MonadEq
+import TypecheckerCombinators.Sum
 
 
 newtype TypeChecker exprF tp m = TypeChecker

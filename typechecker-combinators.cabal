@@ -13,19 +13,19 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Demo
-                     , Typechecker.Combinators
-                     , Typechecker.Core
-                     , Typechecker.Elem
-                     , Typechecker.Elems
-                     , Typechecker.Fix
-                     , Typechecker.Handle
-                     , Typechecker.Match
-                     , Typechecker.MonadEq
-                     , Typechecker.Sum
-                     , Typechecker.Terms
-                     , Typechecker.Types
-                     , Typechecker.Unifix
-                     , Typechecker.Unify
+                     , TypecheckerCombinators.Combinators
+                     , TypecheckerCombinators.Core
+                     , TypecheckerCombinators.Elem
+                     , TypecheckerCombinators.Elems
+                     , TypecheckerCombinators.Fix
+                     , TypecheckerCombinators.Handle
+                     , TypecheckerCombinators.Match
+                     , TypecheckerCombinators.MonadEq
+                     , TypecheckerCombinators.Sum
+                     , TypecheckerCombinators.Terms
+                     , TypecheckerCombinators.Types
+                     , TypecheckerCombinators.Unifix
+                     , TypecheckerCombinators.Unify
   build-depends:       base
                      , containers
                      , lens

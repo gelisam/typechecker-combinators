@@ -4,14 +4,14 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Typechecker.Unifix
+module TypecheckerCombinators.Unifix
   ( Unifix(..)
   ) where
 
 import Data.UnionFind.IntMap qualified as UnionFind
 
-import Typechecker.Elem
-import Typechecker.Fix
+import TypecheckerCombinators.Elem
+import TypecheckerCombinators.Fix
 
 
 data Unifix tpF

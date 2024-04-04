@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-module Typechecker.Handle
+module TypecheckerCombinators.Handle
   ( Handle(Handle, check, infer)
   , contramap
   , (<+>)
@@ -12,7 +12,7 @@ module Typechecker.Handle
 
 import Control.Monad.Trans.Maybe (MaybeT)
 
-import Typechecker.Sum
+import TypecheckerCombinators.Sum
 
 
 data Handle term tp m = Handle

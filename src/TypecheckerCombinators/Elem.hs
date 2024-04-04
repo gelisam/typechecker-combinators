@@ -8,7 +8,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 -- Data Types à la Carte
-module Typechecker.Elem
+module TypecheckerCombinators.Elem
   ( type (+)(InL, InR)
   , Elem(inj, prj)
   ) where
@@ -16,7 +16,7 @@ module Typechecker.Elem
 import Data.Kind (Type)
 import Data.Proxy (Proxy(..))
 
-import Typechecker.Sum
+import TypecheckerCombinators.Sum
 
 
 data Dir = L | R

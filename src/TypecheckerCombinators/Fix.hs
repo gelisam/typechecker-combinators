@@ -6,9 +6,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Typechecker.Fix where
+module TypecheckerCombinators.Fix where
 
-import Typechecker.Elem
+import TypecheckerCombinators.Elem
 
 
 newtype Fix f = Fix

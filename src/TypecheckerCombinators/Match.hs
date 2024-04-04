@@ -4,12 +4,12 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Typechecker.Match
+module TypecheckerCombinators.Match
   ( Match(match)
   , matchM
   ) where
 
-import Typechecker.Sum
+import TypecheckerCombinators.Sum
 
 
 class Traversable fs => Match fs where

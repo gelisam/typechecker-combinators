@@ -7,14 +7,14 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Typechecker.Elems
+module TypecheckerCombinators.Elems
   ( Elems(rolls, unrolls)
   ) where
 
 import Data.Kind (Type)
 
-import Typechecker.Elem
-import Typechecker.Fix
+import TypecheckerCombinators.Elem
+import TypecheckerCombinators.Fix
 
 
 class Elems (fffFix :: Type)

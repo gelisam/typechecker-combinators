@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Typechecker.Unify
+module TypecheckerCombinators.Unify
   ( Match
   , UnificationState
   , HasUnificationState
@@ -30,9 +30,9 @@ import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
 import Data.UnionFind.IntMap qualified as UnionFind
 
-import Typechecker.Fix
-import Typechecker.Match
-import Typechecker.Unifix
+import TypecheckerCombinators.Fix
+import TypecheckerCombinators.Match
+import TypecheckerCombinators.Unifix
 
 -- $setup
 -- >>> :set -XTypeOperators
