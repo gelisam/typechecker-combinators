@@ -6,7 +6,7 @@ module Demo where
 import Prelude hiding ((+), (*))
 
 import Control.Applicative (empty)
-import Data.Functor.Identity (Identity)
+import Data.Functor.Identity (Identity(runIdentity))
 
 
 -- README BEGINS
@@ -29,7 +29,7 @@ import TypecheckerCombinators
     , type (+), Elem
 
       -- Typechecking can fail
-    , MaybeT
+    , MaybeT(runMaybeT)
     
       -- either (==) or unify
     , MonadEq(assertEq)
@@ -99,11 +99,14 @@ huttonTC
 
 -- |
 -- >>> inferHutton huttonProgram
--- MaybeT (Identity (Just Nat))
+-- Just Nat
 inferHutton
   :: Fix Hutton
-  -> MaybeT Identity (Fix Nat)
-inferHutton = infer (runTypeChecker huttonTC)
+  -> Maybe (Fix Nat)
+inferHutton expr
+  = runIdentity
+  $ runMaybeT
+  $ infer (runTypeChecker huttonTC) expr
 
 -- ### Explanation
 --
@@ -222,14 +225,17 @@ baseTC
 
 -- |
 -- >>> inferBase (strLit "hello" + strLit "world")
--- MaybeT (Identity (Just Str))
+-- Just Str
 --
 -- >>> inferBase (natLit 2 + len (strLit "hello"))
--- MaybeT (Identity (Just Nat))
+-- Just Nat
 --
 -- >>> inferBase (natLit 2 + strLit "hello")
--- MaybeT (Identity Nothing)
+-- Nothing
 inferBase
   :: Fix Base
-  -> MaybeT Identity (Fix BaseTypes)
-inferBase = infer (runTypeChecker baseTC)
+  -> Maybe (Fix BaseTypes)
+inferBase expr
+  = runIdentity
+  $ runMaybeT
+  $ infer (runTypeChecker baseTC) expr
