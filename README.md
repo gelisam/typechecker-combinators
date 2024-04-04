@@ -3,6 +3,18 @@
 This is a Haskell library for writing typecheckers out of composable parts;
 like parser combinators, but for typechecking.
 
+```haskell
+import TypecheckerCombinators
+    ( TypeChecker
+    , checked, infered, (<+>)
+    , runTypeChecker, check, infer
+    , Fix, Roll, roll, unroll
+    , type (+), Elem
+    , MaybeT
+    , MonadEq(assertEq)
+    )
+```
+
 ## Hutton's razor
 
 Let's begin with a simple language which only has integers and addition.
@@ -10,6 +22,20 @@ In this file, we are focusing on type-checking, so the definitions of
 `NatLit`, `natLit`, `Plus`, `(+)`, and `Nat` are omitted.
 
 ```haskell
+import TypecheckerCombinators.Terms
+  ( NatLit(NatLit), natLit
+  , Plus(Plus), (+)
+  
+    -- for other languages later in this file
+  , Len(Len), len
+  , StrLit(StrLit), strLit
+  )
+import TypecheckerCombinators.Types
+  ( Nat(Nat), nat
+  
+    -- for other languages later in this file
+  , Str(Str), str
+  )
 type Hutton = NatLit + Plus
 
 huttonProgram
