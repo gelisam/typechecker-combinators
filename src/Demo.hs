@@ -17,12 +17,21 @@ import Data.Functor.Identity (Identity)
 -- like parser combinators, but for typechecking.
 
 import TypecheckerCombinators
-    ( TypeChecker
+    ( -- TypeChecker combinators
+      TypeChecker
     , checked, infered, (<+>)
+
+      -- eliminators
     , runTypeChecker, check, infer
+
+      -- Data Types à la Carte
     , Fix, Roll, roll, unroll
     , type (+), Elem
+
+      -- Typechecking can fail
     , MaybeT
+    
+      -- either (==) or unify
     , MonadEq(assertEq)
     )
 
