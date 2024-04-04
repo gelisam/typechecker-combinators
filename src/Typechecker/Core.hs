@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 module Typechecker.Core
   ( Handle(check, infer)
   , TypeChecker
@@ -16,28 +17,12 @@ module Typechecker.Core
 import Control.Applicative (empty)
 import Control.Monad.Trans.Maybe (MaybeT)
 
-import Typechecker.Elem
 import Typechecker.Fix
+import Typechecker.Handle (Handle(Handle, check, infer))
+import Typechecker.Handle qualified as Handle
 import Typechecker.MonadEq
+import Typechecker.Sum
 
-
-data Handle term tp m = Handle
-  { check
-      :: term -> tp -> MaybeT m ()
-  , infer
-      :: term -> MaybeT m tp
-  }
-
-contramap
-  :: (term' -> term)
-  -> Handle term tp m
-  -> Handle term' tp m
-contramap f h = Handle
-  { check = \term' tp -> do
-      check h (f term') tp
-  , infer = \term' -> do
-      infer h (f term')
-  }
 
 newtype TypeChecker exprF tp m = TypeChecker
   { unTypeChecker
@@ -60,21 +45,18 @@ runTypeChecker tc = handleFix
     handleFix
       :: Handle (Fix exprF) tp m
     handleFix
-      = contramap unFix handleFFix
+      = Handle.contramap unFix handleFFix
 
 (<+>)
   :: forall exprF exprG tp m
    . TypeChecker exprF tp m
   -> TypeChecker exprG tp m
   -> TypeChecker (exprF + exprG) tp m
-tcF <+> tcG = TypeChecker $ \handleR -> Handle
-  { check = \case
-      InL fFix -> check (unTypeChecker tcF handleR) fFix
-      InR gFix -> check (unTypeChecker tcG handleR) gFix
-  , infer = \case
-      InL fFix -> infer (unTypeChecker tcF handleR) fFix
-      InR gFix -> infer (unTypeChecker tcG handleR) gFix
-  }
+tcF <+> tcG
+  = TypeChecker $ \handleR
+ -> (Handle.<+>)
+      (unTypeChecker tcF handleR)
+      (unTypeChecker tcG handleR)
 
 checked
   :: forall exprF tp m. Monad m
