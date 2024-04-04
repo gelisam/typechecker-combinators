@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-module TypecheckerCombinators.Core
+module TypecheckerCombinators.Typechecker
   ( Handle(check, infer)
   , TypeChecker
   , runTypeChecker

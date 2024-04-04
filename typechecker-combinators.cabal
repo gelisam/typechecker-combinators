@@ -14,7 +14,6 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Demo
                      , TypecheckerCombinators
-                     , TypecheckerCombinators.Core
                      , TypecheckerCombinators.Elem
                      , TypecheckerCombinators.Elems
                      , TypecheckerCombinators.Fix
@@ -23,6 +22,7 @@ library
                      , TypecheckerCombinators.MonadEq
                      , TypecheckerCombinators.Sum
                      , TypecheckerCombinators.Terms
+                     , TypecheckerCombinators.Typechecker
                      , TypecheckerCombinators.Types
                      , TypecheckerCombinators.Unifix
                      , TypecheckerCombinators.Unify
